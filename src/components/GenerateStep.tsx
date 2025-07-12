@@ -48,21 +48,24 @@ const GenerateStep: React.FC<GenerateStepProps> = ({
         projectId: 'ai-headshot-generator-56nyr5ff'
       });
       
-      // First, upload the image to get a URL
-      const uploadResult = await client.storage.uploadFile({
-        file: uploadedImage,
-        path: `uploads/${Date.now()}-${uploadedImage.name}`
+      // Convert File to data URL
+      const imageDataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result;
+          if (typeof result === 'string') {
+            resolve(result);
+          } else {
+            reject(new Error('Failed to read file'));
+          }
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(uploadedImage);
       });
-
-      if (!uploadResult.success || !uploadResult.data?.url) {
-        throw new Error('Failed to upload image');
-      }
-
-      const imageUrl = uploadResult.data.url;
       
-      // Use modifyImage with the uploaded image URL
+      // Use modifyImage with the image data URL
       const result = await client.ai.modifyImage({
-        images: [imageUrl],
+        images: [imageDataUrl],
         prompt: fullPrompt,
         n: quantity,
         size: "1024x1024",
