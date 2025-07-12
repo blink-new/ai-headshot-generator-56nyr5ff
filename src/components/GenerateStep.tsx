@@ -40,39 +40,28 @@ const GenerateStep: React.FC<GenerateStepProps> = ({
       // Build the prompt
       const basePrompt = selectedStyle.prompt;
       const fullPrompt = customPrompt 
-        ? `${basePrompt}, ${customPrompt}, professional headshot photography`
-        : `${basePrompt}, professional headshot photography`;
+        ? `${basePrompt}, ${customPrompt}, professional headshot photography, high quality portrait, studio lighting, sharp focus`
+        : `${basePrompt}, professional headshot photography, high quality portrait, studio lighting, sharp focus`;
 
       // Create Blink client with proper configuration
       const client = createClient({
         projectId: 'ai-headshot-generator-56nyr5ff'
       });
       
-      // Convert File to data URL
-      const imageDataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result;
-          if (typeof result === 'string') {
-            resolve(result);
-          } else {
-            reject(new Error('Failed to read file'));
-          }
-        };
-        reader.onerror = () => reject(new Error('Failed to read file'));
-        reader.readAsDataURL(uploadedImage);
-      });
+      // Upload the image file to storage to get a public HTTPS URL
+      const uploadPath = `uploads/${Date.now()}-${uploadedImage.name}`;
+      const uploadResult = await client.storage.upload(uploadedImage, uploadPath);
       
-      // Use modifyImage with the image data URL
+      // Use modifyImage with the uploaded image URL
       const result = await client.ai.modifyImage({
-        images: [imageDataUrl],
+        images: [uploadResult.publicUrl],
         prompt: fullPrompt,
         n: quantity,
         size: "1024x1024",
-        response_format: "url"
+        quality: "high"
       });
 
-      if (result.success && result.data) {
+      if (result.data) {
         const newImages: GeneratedHeadshot[] = result.data.map((imageData, index) => ({
           id: `${Date.now()}-${index}`,
           url: imageData.url || '',
