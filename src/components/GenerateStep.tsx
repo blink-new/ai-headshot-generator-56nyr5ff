@@ -43,14 +43,17 @@ const GenerateStep: React.FC<GenerateStepProps> = ({
         ? `${basePrompt}, ${customPrompt}, professional headshot photography`
         : `${basePrompt}, professional headshot photography`;
 
-      // Create Blink client and generate images
-      const client = createClient();
-      const result = await client.ai.generateImage({
+      // Create Blink client with proper configuration
+      const client = createClient({
+        projectId: 'ai-headshot-generator-56nyr5ff'
+      });
+      
+      // Use modifyImage instead of generateImage
+      const result = await client.ai.modifyImage({
+        image: uploadedImage,
         prompt: fullPrompt,
         n: quantity,
         size: "1024x1024",
-        quality: "high",
-        style: "natural",
         response_format: "url"
       });
 
