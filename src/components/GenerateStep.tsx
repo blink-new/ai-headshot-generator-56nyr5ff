@@ -48,9 +48,21 @@ const GenerateStep: React.FC<GenerateStepProps> = ({
         projectId: 'ai-headshot-generator-56nyr5ff'
       });
       
-      // Use modifyImage instead of generateImage
+      // First, upload the image to get a URL
+      const uploadResult = await client.storage.uploadFile({
+        file: uploadedImage,
+        path: `uploads/${Date.now()}-${uploadedImage.name}`
+      });
+
+      if (!uploadResult.success || !uploadResult.data?.url) {
+        throw new Error('Failed to upload image');
+      }
+
+      const imageUrl = uploadResult.data.url;
+      
+      // Use modifyImage with the uploaded image URL
       const result = await client.ai.modifyImage({
-        image: uploadedImage,
+        images: [imageUrl],
         prompt: fullPrompt,
         n: quantity,
         size: "1024x1024",
