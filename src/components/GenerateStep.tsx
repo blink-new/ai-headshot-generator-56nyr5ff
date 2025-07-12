@@ -5,7 +5,7 @@ import { Download, RefreshCw, Sparkles, Image as ImageIcon, Check } from 'lucide
 import { GeneratedHeadshot, HeadshotStyle } from '../types';
 import { generateDownloadFilename, downloadImage } from '../utils/imageUtils';
 import toast from 'react-hot-toast';
-import { blink_generate_image } from '@blinkdotnew/sdk';
+import { createClient } from '@blinkdotnew/sdk';
 
 interface GenerateStepProps {
   uploadedImage: File | null;
@@ -43,8 +43,9 @@ const GenerateStep: React.FC<GenerateStepProps> = ({
         ? `${basePrompt}, ${customPrompt}, professional headshot photography`
         : `${basePrompt}, professional headshot photography`;
 
-      // Generate images using Blink's image generation
-      const result = await blink_generate_image({
+      // Create Blink client and generate images
+      const client = createClient();
+      const result = await client.ai.generateImage({
         prompt: fullPrompt,
         n: quantity,
         size: "1024x1024",
